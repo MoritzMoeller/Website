@@ -73,6 +73,7 @@ Assume the following simple situation:
 - Let $r_t$ be the reward that we obtain for occupying the state $s_t$. We'll get it as we leave the state.
 
 ![State chain](./assets/images/state_chain.png)
+
 *Figure: States, transitions, rewards.*
 
 Next, we have to specify what we want to learn. We are after the value function, a function that maps a state to the upcoming rewards that we'll obtain after leaving it.
@@ -84,6 +85,7 @@ V(x_t) = \sum_{i \ge t} r_t
 $$
 
 ![State chain value 1](./assets/images/state_chain_value_1.png)
+
 *Figure: The value function.*
 
 Now, we know what we want to do: predict the sum of upcoming rewards. How? Classic statistics approach: we'll fit a model. Here, our model will be 
@@ -133,6 +135,7 @@ $$
 Instead of using the actual sum of upcoming rewards, we'll use our best guess of it, which is constructed from the reward that we got from the current state and the reward we expect to get from the next state onwards.
 
 ![State chain value 2](./assets/images/state_chain_value.png)
+
 *Figure: Bootstrapping the value target.*
 
 Using this trick, the prediction error becomes
@@ -170,7 +173,8 @@ To set up our model, we'll have to think about states and representations.
 So, what do we get?
 
 
-![The TD signals during Pavlovian conditioning](./assets/images/The TD signals during Pavlovian conditioning.png)
+![The TD signals during Pavlovian conditioning](./assets/images/the_td_signals_during_pavlovian_conditioning.png)
+
 *Figure: The TD signals during Pavlovian conditioning. Adapted from [2].*
 
 The brain is of course behind the conditioning that we see in animals. Our discipline, Neuroscience, is the study of how the nervous system generates behaviour. Hence, here we ask: how does the brain learn about reward-predicting stimuli? One approach is to take the signal from our model and look for them in the brain. This was done, and they were found in the activity of dopaminergic neurons!
