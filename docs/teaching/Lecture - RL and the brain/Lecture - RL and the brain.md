@@ -73,18 +73,17 @@ Assume the following simple situation:
 - Let $r_t$ be the reward that we obtain for occupying the state $s_t$. We'll get it as we leave the state.
 
 ![State chain](./assets/images/state_chain.png)
-
 *Figure: States, transitions, rewards.*
 
 Next, we have to specify what we want to learn. We are after the value function, a function that maps a state to the upcoming rewards that we'll obtain after leaving it.
 
 We hence want a map $V$  that takes $x_t$  and gives a prediction of how much reward we'll get from now on: 
+
 $$
 V(x_t) = \sum_{i \ge t} r_t
 $$
 
-![[state_chain_value_1.png]]
-
+![State chain value 1](./assets/images/state_chain_value_1.png)
 *Figure: The value function.*
 
 Now, we know what we want to do: predict the sum of upcoming rewards. How? Classic statistics approach: we'll fit a model. Here, our model will be 
@@ -96,21 +95,27 @@ $$
 where $\omega$ are the parameters that we will optimise through learning. This is a simple linear model, i.e. the representation of the state is linearly mapped onto the value.
 
 Ok, so we know the objective/loss, and we have defined a model. How can we improve our model by interacting? To get there, we need to check how we might improve the model gradually. We choose the simplest way: **gradient descent**. Take the squared error
+
 $$
 \mathcal{L} = \left(\hat{V}(x_t) - \sum_{i \ge t} r_t \right)^2
 $$
-and compute the gradient with respect to our parameters $\omega$ :
+
+and compute the gradient with respect to our parameters $\omega$:
+
 $$
 \nabla_\omega \mathcal{L} = \nabla_\omega\left(\hat{V}(x_t) - \sum_{i \ge t} r_t \right)^2
 = 2 \left(\hat{V}(x_t) - \sum_{i \ge t} r_t \right) \nabla_\omega \hat{V}(x_t) 
 = 2 \left(\hat{V}(x_t) - \sum_{i \ge t} r_t \right) x_t
 =: -2 \delta_t  x_t
 $$
+
 where we define $\delta_t = \left(\sum_{i \ge t} r_t  - \hat{V}(x_t) \right)$ as the **reward prediction error**. The gradient tells us how to update our parameters $\omega$ to improve our model:
+
 $$
 \omega_i \leftarrow \omega_i + \alpha \delta_t  (x_t)_i
 $$
-with a learning rate $\alpha$. This update rule affords a nice interpretation:  $\omega_i$ (the parameter associated with the feature $i$  in the representation) will be increased if 1) the upcoming rewards after the current state are larger than expected and 2) the feature $(x_t)_i = 1$, i.e. feature $i$ is part of the current state description. We say that feature $i$ predicts reward if it appears in a state which is followed by a lot of rewards.
+
+with a learning rate $\alpha$. This update rule affords a nice interpretation:  $\omega_i$ (the parameter associated with the feature $i$  in the representation) will be increased if 1) the upcoming rewards after the current state are larger than expected and 2) the feature $(x_t)_i = 1$, i.e. feature $i$ is part of the current state description. We say that feature $i$ predicts a reward if it appears in a state which is followed by a lot of rewards.
 
  At the moment, to compute the update, we need:
 
@@ -119,19 +124,23 @@ with a learning rate $\alpha$. This update rule affords a nice interpretation:  
 3. The actual sum of upcoming rewards, $\sum_{i \ge t} r_t$
 
 The difficult one is the last. How can we get this? The solution is simple but clever: we estimate it with what we already know! Like so:
+
 $$
 \sum_{i \ge t} r_t = r_t + r_{t+1} + r_{t+1} + \dots = r_t + \sum_{i \ge t+1} r_t
 = r_t + V(x_{t+1}) \approx r_t + \hat{V}(x_{t+1})
 $$
+
 Instead of using the actual sum of upcoming rewards, we'll use our best guess of it, which is constructed from the reward that we got from the current state and the reward we expect to get from the next state onwards.
 
-![[state_chain_value.png]]
+![State chain value 2](./assets/images/state_chain_value.png)
 *Figure: Bootstrapping the value target.*
 
 Using this trick, the prediction error becomes
+
 $$
 \delta_t = \left(r_t +  \hat{V}(x_{t+1}) - \hat{V}(x_t) \right).
 $$
+
 This is called the **temporal difference error**.
 
 With this, our learning algorithm is complete: When transitioning from state $s_t$ to state $s_{t+1}$, we...
@@ -158,7 +167,11 @@ To set up our model, we'll have to think about states and representations.
 
 **Representations**: When considering this the first time, one might think that the state could be fully described by whether the tone is heard or not. E.g. $x_t = 1$ when the tone was played in the current trial, and $0$ else. The state is communicated to the agent by saying 'tone' or 'no tone'. This is a perfectly ok representation, but if you try it, you see that it does not work! The monkey must have something more sophisticated going on! Instead, we'll use the stopwatch representation: essentially, when describing a state to the agent we say: 'tone was played 2s ago'. 
 
-So, what do we get?![[The TD signals during Pavlovian conditioning.png]]*Figure: The TD signals during Pavlovian conditioning. Adapted from [2].*
+So, what do we get?
+
+
+![The TD signals during Pavlovian conditioning](./assets/images/The TD signals during Pavlovian conditioning.png)
+*Figure: The TD signals during Pavlovian conditioning. Adapted from [2].*
 
 The brain is of course behind the conditioning that we see in animals. Our discipline, Neuroscience, is the study of how the nervous system generates behaviour. Hence, here we ask: how does the brain learn about reward-predicting stimuli? One approach is to take the signal from our model and look for them in the brain. This was done, and they were found in the activity of dopaminergic neurons!
 
