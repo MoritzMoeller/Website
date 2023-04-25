@@ -72,7 +72,7 @@ Assume the following simple situation:
 - Let $s_t$  be the state that we occupy at step $t$, and $x_t$ it's representation. We'll limit ourselves to representations that are feature vectors, i.e. vectors with entries 0 and 1. Then $(x_t)_i = 1$  means that the feature $i$ was part of the description of the state $s_t$.
 - Let $r_t$ be the reward that we obtain for occupying the state $s_t$. We'll get it as we leave the state.
 
-![State chain](/Website/docs/assets/images/state_chain.png)
+![State chain](./assets/images/state_chain.png)
 
 *Figure: States, transitions, rewards.*
 
