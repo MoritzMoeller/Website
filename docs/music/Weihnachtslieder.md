@@ -17,6 +17,11 @@ Hoch oben schwebt jubelnd der Engelein Chor
 
 ## Süßer die Glocken nie klingen
 
+C  C  G7 G7 G7 G7 C  C
+C  C  F  F  C  G7 C  C
+G7 C  G7 C  G7 C  G7 C
+C  G7 F  F  C  G7 C  C
+
 Süßer die Glocken nie klingen  
 Als zu der Weihnachtszeit  
 Sie ist, als ob Engelein singen  
