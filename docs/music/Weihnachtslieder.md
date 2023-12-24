@@ -101,7 +101,7 @@ Freue, freue dich, o Christenheit!
 
 ## Joy to the world
 
-[Joy_To_The_World](https://moritzmoeller.github.io/Website/PDFs/Music/Christmas/Joy_To_The_World-Antioch.pdf)
+[Joy to the world](https://moritzmoeller.github.io/Website/PDFs/Music/Christmas/Joy_To_The_World-Antioch.pdf)
 
 ## Morgen Kinder wird's was geben
 
@@ -186,10 +186,12 @@ Schenket uns deine Huld,
 Sie tilgt die Sündenschuld  
 Jedem, der glaubt, jedem, der glaubt.
 
-![[heiligste-nacht.pdf]]
+[Heiligste Nacht](https://moritzmoeller.github.io/Website/PDFs/Music/Christmas/heiligste-nacht.pdf)
+
 ## Hark the herald angels sing
 
-![[Hark-The-Herald-Angels-Sings-F-Major.pdf]]
+[Hark the herald angles sing](https://moritzmoeller.github.io/Website/PDFs/Music/Christmas/Hark-The-Herald-Angels-Sings-F-Major.pdf)
+
 ## Stille Nacht heilige Nacht
 
 Stille Nacht, heilige Nacht! 
