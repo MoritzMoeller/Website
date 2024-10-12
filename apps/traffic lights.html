@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Light Predictor</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        ul { list-style-type: none; padding: 0; }
+        li { cursor: pointer; padding: 10px; border: 1px solid #ddd; margin-bottom: 5px; }
+        #lightPredictor { display: none; }
+        #colorIndicator { width: 100px; height: 100px; margin: 20px 0; }
+        button { margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div id="trafficLightList">
+        <h1>Traffic Lights</h1>
+        <ul id="lightsList"></ul>
+    </div>
+
+    <div id="lightPredictor">
+        <h1 id="lightName"></h1>
+        <div id="colorIndicator"></div>
+        <p>Current color: <span id="currentColor"></span></p>
+        <p>Time until next change: <span id="timeUntilChange"></span> seconds</p>
+        <button onclick="goBack()">Back to List</button>
+    </div>
+
+    <script>
+        const trafficLights = [
+            { name: "Main St & 1st Ave", direction: "North", startTime: new Date("2023-01-01T00:00:00").getTime(), sequence: ["green", "yellow", "red", "yellow"], intervals: [3000, 6000, 3000, 6000] },
+            { name: "Oak Rd & Pine St", direction: "East", startTime: new Date("2023-01-01T00:00:00").getTime(), sequence: ["green", "yellow", "red", "yellow"], intervals: [3000, 2000, 2000, 5000] }
+        ];
+
+        function displayLightsList() {
+            const lightsList = document.getElementById("lightsList");
+            lightsList.innerHTML = "";
+            trafficLights.forEach((light, index) => {
+                const li = document.createElement("li");
+                li.textContent = `${light.name} (${light.direction})`;
+                li.onclick = () => showLightPredictor(index);
+                lightsList.appendChild(li);
+            });
+        }
+
+        function showLightPredictor(index) {
+            const light = trafficLights[index];
+            document.getElementById("trafficLightList").style.display = "none";
+            document.getElementById("lightPredictor").style.display = "block";
+            document.getElementById("lightName").textContent = `${light.name} (${light.direction})`;
+            updateLightStatus(light);
+            setInterval(() => updateLightStatus(light), 10);
+        }
+
+        function updateLightStatus(light) {
+            const now = new Date().getTime();
+            const totalCycleTime = light.intervals.reduce((a, b) => a + b, 0);
+            const elapsedTime = (now - light.startTime) % totalCycleTime;
+            
+            let accumulatedTime = 0;
+            let currentColor;
+            let timeUntilChange;
+                        
+            for (let i = 0; i < light.sequence.length; i++) {
+                if (accumulatedTime + light.intervals[i] > elapsedTime) {
+                    currentColor = light.sequence[i];
+                    timeUntilChange = Math.round((accumulatedTime + light.intervals[i] - elapsedTime));
+                    break;
+                }
+                accumulatedTime += light.intervals[i];
+            }
+
+            document.getElementById("colorIndicator").style.backgroundColor = currentColor;
+            document.getElementById("currentColor").textContent = currentColor;
+            document.getElementById("timeUntilChange").textContent = timeUntilChange;
+        }
+
+        function goBack() {
+            document.getElementById("trafficLightList").style.display = "block";
+            document.getElementById("lightPredictor").style.display = "none";
+        }
+
+        displayLightsList();
+    </script>
+</body>
+</html>
