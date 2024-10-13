@@ -29,8 +29,9 @@
 
     <script>
         const trafficLights = [
-            { name: "Main St & 1st Ave", direction: "North", startTime: new Date("2023-01-01T00:00:00").getTime(), sequence: ["green", "yellow", "red", "yellow"], intervals: [3000, 6000, 3000, 6000] },
-            { name: "Oak Rd & Pine St", direction: "East", startTime: new Date("2023-01-01T00:00:00").getTime(), sequence: ["green", "yellow", "red", "yellow"], intervals: [3000, 2000, 2000, 5000] }
+            { name: "Wrangel & Skalitzer", direction: "SE", startTime: new Date("2023-01-01T00:00:00").getTime(), sequence: ["green", "yellow", "red", "yellow"], intervals: [3000, 6000, 3000, 6000] },
+            { name: "Marienburger & Prenzlauer (Fußgänger)", direction: "SE", startTime: new Date("2024-10-13T14:35:32").getTime(), sequence: ["red", "green"], intervals: [61000, 19000] },
+            { name: "Marienburger & Prenzlauer (Auto)", direction: "SE", startTime: new Date("2024-10-13T14:35:34").getTime(), sequence: ["red", "yellow", "green", "yellow"], intervals: [62000, 1000, 13000, 4000] },
         ];
 
         function displayLightsList() {
