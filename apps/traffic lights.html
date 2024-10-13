@@ -29,11 +29,11 @@
 
     <script>
         const trafficLights = [
-            { name: "Wrangel & Skalitzer (Auto)", direction: "SE", startTime: new Date("2024-10-13T15:10:40").getTime(), sequence: ["green", "yellow", "red", "yellow"], intervals: [22000, 3000, 44000, 1000] },
-            { name: "Wrangel & Skalitzer (Fußgänger)", direction: "SE", startTime: new Date("2024-10-13T15:09:27").getTime(), sequence: ["green", "red"], intervals: [26000, 44000] },
-            { name: "Skalitzer & Wrangel (Fußgänger)", direction: "NE", startTime: new Date("2024-10-13T15:11:16").getTime(), sequence: ["green", "red"], intervals: [20000, 50000] },
-            { name: "Marienburger & Prenzlauer (Fußgänger)", direction: "SE", startTime: new Date("2024-10-13T14:35:32").getTime(), sequence: ["red", "green"], intervals: [70000, 10000] },
-            { name: "Marienburger & Prenzlauer (Auto)", direction: "SE", startTime: new Date("2024-10-13T14:35:34").getTime(), sequence: ["red", "yellow", "green", "yellow"], intervals: [62000, 1000, 13000, 4000] },
+            { name: "Wrangel & Skalitzer (Auto)", direction: "SE", startTime: new Date("2024-10-13T13:10:40Z").getTime(), sequence: ["green", "yellow", "red", "yellow"], intervals: [22000, 3000, 44000, 1000] },
+            { name: "Wrangel & Skalitzer (Fußgänger)", direction: "SE", startTime: new Date("2024-10-13T13:09:27Z").getTime(), sequence: ["green", "red"], intervals: [26000, 44000] },
+            { name: "Skalitzer & Wrangel (Fußgänger)", direction: "NE", startTime: new Date("2024-10-13T13:11:16Z").getTime(), sequence: ["green", "red"], intervals: [20000, 50000] },
+            { name: "Marienburger & Prenzlauer (Fußgänger)", direction: "SE", startTime: new Date("2024-10-13T12:35:32Z").getTime(), sequence: ["red", "green"], intervals: [70000, 10000] },
+            { name: "Marienburger & Prenzlauer (Auto)", direction: "SE", startTime: new Date("2024-10-13T12:35:34Z").getTime(), sequence: ["red", "yellow", "green", "yellow"], intervals: [62000, 1000, 13000, 4000] },
         ];
 
         function displayLightsList() {
@@ -53,7 +53,7 @@
             document.getElementById("lightPredictor").style.display = "block";
             document.getElementById("lightName").textContent = `${light.name} (${light.direction})`;
             updateLightStatus(light);
-            setInterval(() => updateLightStatus(light), 10);
+            setInterval(() => updateLightStatus(light), 100);
         }
 
         function updateLightStatus(light) {
@@ -68,7 +68,7 @@
             for (let i = 0; i < light.sequence.length; i++) {
                 if (accumulatedTime + light.intervals[i] > elapsedTime) {
                     currentColor = light.sequence[i];
-                    timeUntilChange = Math.round((accumulatedTime + light.intervals[i] - elapsedTime));
+                    timeUntilChange = (accumulatedTime + light.intervals[i] - elapsedTime)/1000;
                     break;
                 }
                 accumulatedTime += light.intervals[i];
