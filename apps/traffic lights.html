@@ -28,6 +28,39 @@
     </div>
 
     <script>
+        let serverTimeOffset = 0;
+
+        // Fetch time from WorldTimeAPI
+        async function fetchServerTime() {
+            try {
+                const response = await fetch('http://worldtimeapi.org/api/timezone/Etc/UTC');
+                const data = await response.json();
+                return new Date(data.utc_datetime).getTime();
+            } catch (error) {
+                console.error('Error fetching server time:', error);
+                return Date.now(); // Fallback to local time if API fails
+            }
+        }
+
+        // Initialize server time offset
+        async function initServerTime() {
+            const start = Date.now();
+            const serverTime = await fetchServerTime();
+            const end = Date.now();
+            const networkDelay = (end - start) / 2;
+            serverTimeOffset = serverTime - (start + networkDelay);
+        }
+
+        // Get current time adjusted with server offset
+        function getCurrentTime() {
+            return Date.now() + serverTimeOffset;
+        }
+
+        // Initialize server time and then start the app
+        initServerTime().then(() => {
+            displayLightsList();
+        });
+
         const trafficLights = [
             { name: "Wrangel & Skalitzer (Auto)", direction: "SE", startTime: new Date("2024-10-13T13:10:40Z").getTime(), sequence: ["green", "yellow", "red", "yellow"], intervals: [22000, 3000, 44000, 1000] },
             { name: "Wrangel & Skalitzer (Fußgänger)", direction: "SE", startTime: new Date("2024-10-13T13:09:27Z").getTime(), sequence: ["green", "red"], intervals: [26000, 44000] },
@@ -47,17 +80,24 @@
             });
         }
 
+        let intervalId;
+
         function showLightPredictor(index) {
             const light = trafficLights[index];
             document.getElementById("trafficLightList").style.display = "none";
             document.getElementById("lightPredictor").style.display = "block";
             document.getElementById("lightName").textContent = `${light.name} (${light.direction})`;
+
+            // Clear previous interval if it exists
+            if (intervalId) {
+                clearInterval(intervalId);
+            }
             updateLightStatus(light);
-            setInterval(() => updateLightStatus(light), 100);
+            intervalId = setInterval(() => updateLightStatus(light), 200);
         }
 
         function updateLightStatus(light) {
-            const now = new Date().getTime();
+            const now = getCurrentTime();
             const totalCycleTime = light.intervals.reduce((a, b) => a + b, 0);
             const elapsedTime = (now - light.startTime) % totalCycleTime;
             
@@ -76,7 +116,7 @@
 
             document.getElementById("colorIndicator").style.backgroundColor = currentColor;
             document.getElementById("currentColor").textContent = currentColor;
-            document.getElementById("timeUntilChange").textContent = timeUntilChange;
+            document.getElementById("timeUntilChange").textContent = timeUntilChange.toFixed(1);
         }
 
         function goBack() {
@@ -84,7 +124,8 @@
             document.getElementById("lightPredictor").style.display = "none";
         }
 
-        displayLightsList();
+        // Re-sync with server every 5 minutes
+        setInterval(initServerTime, 5 * 60 * 1000);
     </script>
 </body>
 </html>
