@@ -11,9 +11,13 @@
         #lightPredictor { display: none; }
         #colorIndicator { width: 100px; height: 100px; margin: 20px 0; }
         button { margin-top: 10px; }
+        #serverSyncStatus { margin-bottom: 10px; padding: 5px; border-radius: 5px; }
+        .synced { background-color: #d4edda; color: #155724; }
+        .not-synced { background-color: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
+    <div id="serverSyncStatus" class="not-synced">Server Time: Not Synced</div>
     <div id="trafficLightList">
         <h1>Traffic Lights</h1>
         <ul id="lightsList"></ul>
@@ -29,6 +33,7 @@
 
     <script>
         let serverTimeOffset = 0;
+        let isSynced = false;
 
         // Fetch time from WorldTimeAPI
         async function fetchServerTime() {
@@ -38,17 +43,30 @@
                 return new Date(data.utc_datetime).getTime();
             } catch (error) {
                 console.error('Error fetching server time:', error);
-                return Date.now(); // Fallback to local time if API fails
+                return null;
             }
         }
 
         // Initialize server time offset
         async function initServerTime() {
+            const syncStatusElement = document.getElementById('serverSyncStatus');
+            syncStatusElement.className = 'not-synced';
+            syncStatusElement.textContent = 'Server Time: Syncing...';
+
             const start = Date.now();
             const serverTime = await fetchServerTime();
+            if (serverTime === null) {
+                syncStatusElement.textContent = 'Server Time: Sync Failed. Using Local Time.';
+                isSynced = false;
+                return;
+            }
             const end = Date.now();
             const networkDelay = (end - start) / 2;
             serverTimeOffset = serverTime - (start + networkDelay);
+            
+            isSynced = true;
+            syncStatusElement.className = 'synced';
+            syncStatusElement.textContent = 'Server Time: Synced';
         }
 
         // Get current time adjusted with server offset
@@ -57,9 +75,12 @@
         }
 
         // Initialize server time and then start the app
-        initServerTime().then(() => {
+        async function init() {
+            await initServerTime();
             displayLightsList();
-        });
+        }
+
+        init();
 
         const trafficLights = [
             { name: "Wrangel & Skalitzer (Auto)", direction: "SE", startTime: new Date("2024-10-13T13:10:40Z").getTime(), sequence: ["green", "yellow", "red", "yellow"], intervals: [22000, 3000, 44000, 1000] },
@@ -93,7 +114,7 @@
                 clearInterval(intervalId);
             }
             updateLightStatus(light);
-            intervalId = setInterval(() => updateLightStatus(light), 200);
+            intervalId = setInterval(() => updateLightStatus(light), 1000); // Update every second
         }
 
         function updateLightStatus(light) {
@@ -116,7 +137,7 @@
 
             document.getElementById("colorIndicator").style.backgroundColor = currentColor;
             document.getElementById("currentColor").textContent = currentColor;
-            document.getElementById("timeUntilChange").textContent = timeUntilChange.toFixed(1);
+            document.getElementById("timeUntilChange").textContent = timeUntilChange.toFixed(0);
         }
 
         function goBack() {
@@ -125,7 +146,9 @@
         }
 
         // Re-sync with server every 5 minutes
-        setInterval(initServerTime, 5 * 60 * 1000);
+        setInterval(async () => {
+            await initServerTime();
+        }, 5 * 60 * 1000);
     </script>
 </body>
 </html>
