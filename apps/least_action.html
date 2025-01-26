@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Least Action Principle Simulation</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Additional custom styles if needed */
+        canvas {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="root" class="flex justify-center items-center min-h-screen bg-gray-100"></div>
+
+    <script type="text/babel">
+        const Card = ({ children, className }) => (
+            <div className={`bg-white shadow-md rounded-lg p-4 ${className}`}>
+                {children}
+            </div>
+        );
+
+        const Slider = ({ value, onValueChange, min, max, step, className }) => (
+            <input 
+                type="range" 
+                value={value} 
+                onChange={(e) => onValueChange(parseFloat(e.target.value))}
+                min={min} 
+                max={max} 
+                step={step}
+                className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer ${className}`}
+            />
+        );
+
+        const LeastActionSimulation = () => {
+            const [nodes, setNodes] = React.useState([]);
+            const [isSimulating, setIsSimulating] = React.useState(false);
+            
+            const canvasRef = React.useRef(null);
+            const animationFrameRef = React.useRef(null);
+            
+            // Constants
+            const NODE_COUNT = 16; // Number of steps
+            const GRAVITY = 9.81; // Gravity
+            const DISTANCE = 400;
+            const MASS = 2.0; // Fixed mass value
+            const TOTAL_TIME = 10.0; // Fixed total time
+
+            // Derived constants
+            const DT = TOTAL_TIME/NODE_COUNT; // Time step
+
+            // Precision
+            const LEARNING_RATE = 0.02;
+            const EPS = 0.01;
+
+            // Simple gravity potential (note that y goes down on the canvas)
+            const getPotential = (x, y) => {
+                return -MASS * GRAVITY * y;
+            };
+
+            // Kinetic energy
+            const getKinetic = (vx, vy) => {
+                return 0.5 * MASS * (vx * vx + vy * vy);
+            };
+
+            const initializeNodes = () => {
+
+                const startX = 100;
+                const startY = 300;
+
+                const endX = startX + DISTANCE;
+                const endY = 300;
+                
+                const nodes = [];
+
+                for (let i = 0; i < NODE_COUNT; i++) {
+
+                    const t = i / (NODE_COUNT - 1);
+                    const x = startX + (endX - startX) * t;
+                    const y = startY + (endY - startY) * t;
+                    nodes.push({ x, y});
+                }
+                return nodes;
+            };
+
+            const calculateAction = (nodes) => {
+
+                let action = 0;
+
+                for (let i = 0; i < nodes.length - 1; i++) {
+
+                    const dx = nodes[i + 1].x - nodes[i].x;
+                    const dy = nodes[i + 1].y - nodes[i].y;
+                    const vx = dx / DT;
+                    const vy = dy / DT;
+                    
+                    const T = getKinetic(vx, vy);
+                    const V = getPotential(nodes[i].x, nodes[i].y);
+                    action += (T - V) * DT;
+                }
+                return action;
+            };
+
+            const updateNodes = () => {
+                setNodes(prevNodes => {
+                    const newNodes = [...prevNodes];
+                    
+                    for (let i = 1; i < newNodes.length - 1; i++) {
+                        const node = newNodes[i];
+                        
+                        const dSdx = (calculateAction([
+                            ...newNodes.slice(0, i),
+                            { ...node, x: node.x + EPS },
+                            ...newNodes.slice(i + 1)
+                        ]) - calculateAction(newNodes)) / EPS;
+                        
+                        const dSdy = (calculateAction([
+                            ...newNodes.slice(0, i),
+                            { ...node, y: node.y + EPS },
+                            ...newNodes.slice(i + 1)
+                        ]) - calculateAction(newNodes)) / EPS;
+                        
+                        newNodes[i] = {
+                            ...node,
+                            x: node.x - LEARNING_RATE * dSdx,
+                            y: node.y - LEARNING_RATE * dSdy
+                        };
+                    }
+                    
+                    return newNodes;
+                });
+            };
+
+            const animate = () => {
+                updateNodes();
+                animationFrameRef.current = requestAnimationFrame(animate);
+            };
+
+            const draw = () => {
+                const canvas = canvasRef.current;
+                const ctx = canvas.getContext('2d');
+                
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw potential field
+                const pixelSize = 10;
+                
+                // First pass: calculate min/max potential values
+                let minPotential = Infinity;
+                let maxPotential = -Infinity;
+                
+                for (let x = 0; x < canvas.width; x += pixelSize) {
+                    for (let y = 0; y < canvas.height; y += pixelSize) {
+                        const potential = getPotential(x, y);
+                        minPotential = Math.min(minPotential, potential);
+                        maxPotential = Math.max(maxPotential, potential);
+                    }
+                }
+                
+                // Second pass: draw with normalized colors
+                for (let x = 0; x < canvas.width; x += pixelSize) {
+                    for (let y = 0; y < canvas.height; y += pixelSize) {
+                        const potential = getPotential(x, y);
+                        // Normalize potential to [0,1] range based on min/max values
+                        const normalizedPotential = (potential - minPotential) / (maxPotential - minPotential);
+                        
+                        // Create a smooth gradient from blue (low) to white (middle) to red (high)
+                        const r = Math.min(255, Math.round(normalizedPotential * 510));
+                        const b = Math.min(255, Math.round((1 - normalizedPotential) * 510));
+                        const g = Math.round(255 - Math.abs(normalizedPotential - 0.5) * 510);
+                        
+                        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.5)`;
+                        ctx.fillRect(x, y, pixelSize, pixelSize);
+                    }
+                }
+                
+                // Draw path
+                ctx.beginPath();
+                ctx.moveTo(nodes[0].x, nodes[0].y);
+                for (let i = 1; i < nodes.length; i++) {
+                    ctx.lineTo(nodes[i].x, nodes[i].y);
+                }
+                ctx.strokeStyle = '#2563eb';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Draw nodes
+                nodes.forEach((node, i) => {
+                    ctx.beginPath();
+                    ctx.arc(node.x, node.y, 6, 0, Math.PI * 2);
+                    ctx.fillStyle = i === 0 || i === nodes.length - 1 ? '#dc2626' : '#2563eb';
+                    ctx.fill();
+                });
+            };
+
+            React.useEffect(() => {
+                setNodes(initializeNodes());
+            }, []);
+
+            React.useEffect(() => {
+                if (isSimulating) {
+                    animationFrameRef.current = requestAnimationFrame(animate);
+                } else if (animationFrameRef.current) {
+                    cancelAnimationFrame(animationFrameRef.current);
+                }
+                
+                return () => {
+                    if (animationFrameRef.current) {
+                        cancelAnimationFrame(animationFrameRef.current);
+                    }
+                };
+            }, [isSimulating]);
+
+            React.useEffect(() => {
+                if (nodes.length > 0) {
+                    draw();
+                }
+            }, [nodes]);
+
+            return (
+                <Card className="p-4 w-full max-w-4xl">
+                    <div className="flex flex-col items-center gap-4">
+                        <canvas
+                            ref={canvasRef}
+                            width={600}
+                            height={400}
+                            className="border border-gray-200 rounded-lg"
+                        />
+                        
+                        <div className="flex gap-4">
+                            <button
+                                onClick={() => setIsSimulating(prev => !prev)}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                            >
+                                {isSimulating ? 'Stop' : 'Start'}
+                            </button>
+                            <button
+                                onClick={() => setNodes(initializeNodes())}
+                                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+                            >
+                                Reset
+                            </button>
+                        </div>
+                    </div>
+                </Card>
+            );
+        };
+
+        const App = () => {
+            return (
+                <div className="flex justify-center items-center min-h-screen bg-gray-100">
+                    <LeastActionSimulation />
+                </div>
+            );
+        };
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
